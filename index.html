@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N-Reinas — Backtracking Recursivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #ffffff;
+  --bg2:       #f7f8fc;
+  --bg3:       #000000;
+  --border:    #e2e5f0;
+  --border2:   #c8cde0;
+  --text:      hsl(0, 0%, 0%);
+  --muted:     #6b7280;
+  --muted2:    #9ca3af;
+  --accent:    #4f46e5;
+  --accent-l:  #eef2ff;
+  --accent2:   #7c3aed;
+  --accent2-l: #f5f3ff;
+  --green:     #059669;
+  --green-l:   #ecfdf5;
+  --red:       #dc2626;
+  --red-l:     #fef2f2;
+  --amber:     #d97706;
+  --amber-l:   #fffbeb;
+  --pink:      #db2777;
+  --pink-l:    #fdf2f8;
+  --queen:     #4f46e5;
+  --safe:      #d1fae5;
+  --unsafe:    #fee2e2;
+  --cell-w:    #f9fafb;
+  --cell-b:    hsl(0, 0%, 0%);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+  --shadow:    0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.06);
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Outfit', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+/* ── HERO ── */
+.hero {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);
+  padding: 64px 40px 56px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content:'';
+  position:absolute; inset:0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-tag {
+  display:inline-block;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 20px;
+  padding: 5px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+  margin-bottom: 20px;
+}
+.hero h1 {
+  font-size: clamp(36px, 6vw, 62px);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -1.5px;
+  margin-bottom: 14px;
+  line-height: 1.1;
+}
+.hero h1 span { opacity: 0.7; }
+.hero p {
+  font-size: 18px;
+  color: rgba(255,255,255,0.8);
+  max-width: 520px;
+  margin: 0 auto 10px;
+}
+.hero-mono {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+}
+.hero-chips {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.hero-chip {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+}
+
+/* ── LAYOUT ── */
+.container { max-width: 980px; margin: 0 auto; padding: 0 32px; }
+section { padding: 60px 0; border-bottom: 1px solid var(--border); }
+section:last-of-type { border-bottom: none; }
+
+.section-num {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-l);
+  border-radius: 6px;
+  padding: 3px 10px;
+  margin-bottom: 12px;
+}
+h2 {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+h3 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+p { color: var(--muted); margin-bottom: 14px; }
+p strong { color: var(--text); font-weight: 600; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 28px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+}
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media(max-width:680px){ .card-grid { grid-template-columns: 1fr; } }
+.card-accent  { border-color: #c7d2fe; background: linear-gradient(135deg, #eef2ff, #f5f3ff); }
+.card-green   { border-color: #a7f3d0; background: linear-gradient(135deg, #ecfdf5, #f0fdf4); }
+.card-red     { border-color: #fecaca; background: linear-gradient(135deg, #fef2f2, #fff1f2); }
+.card-amber   { border-color: #fde68a; background: linear-gradient(135deg, #fffbeb, #fefce8); }
+
+.badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+.badge-indigo { background: var(--accent-l); color: var(--accent); border: 1px solid #c7d2fe; }
+.badge-green  { background: var(--green-l);  color: var(--green);  border: 1px solid #a7f3d0; }
+.badge-red    { background: var(--red-l);    color: var(--red);    border: 1px solid #fecaca; }
+.badge-amber  { background: var(--amber-l);  color: var(--amber);  border: 1px solid #fde68a; }
+.badge-purple { background: var(--accent2-l);color: var(--accent2);border: 1px solid #ddd6fe; }
+.badge-pink   { background: var(--pink-l);   color: var(--pink);   border: 1px solid #fbcfe8; }
+
+/* ── CODE ── */
+pre {
+  background: #0f1117;
+  border: 1px solid #1e2235;
+  border-radius: 14px;
+  padding: 28px 32px;
+  overflow-x: auto;
+  margin: 20px 0;
+  position: relative;
+  box-shadow: var(--shadow);
+}
+pre .lang-tag {
+  position:absolute; top:14px; right:18px;
+  font-family:var(--mono); font-size:10px;
+  color:#4a5070; letter-spacing:1px; text-transform:uppercase;
+}
+code { font-family:var(--mono); font-size:13px; line-height:1.85; }
+.kw  { color:#818cf8; }
+.fn  { color:#a78bfa; }
+.str { color:#34d399; }
+.cm  { color:#374151; font-style:italic; }
+.num { color:#fbbf24; }
+.var { color:#e2e8f0; }
+.op  { color:#f87171; }
+.tp  { color:#67e8f9; }
+.hl-line  { background:rgba(79,70,229,0.12); display:block; margin:0 -32px; padding:0 32px; border-left:3px solid #6366f1; }
+.hl-green { background:rgba(16,185,129,0.10); display:block; margin:0 -32px; padding:0 32px; border-left:3px solid #10b981; }
+.hl-red   { background:rgba(239,68,68,0.10);  display:block; margin:0 -32px; padding:0 32px; border-left:3px solid #ef4444; }
+.hl-amber { background:rgba(245,158,11,0.10); display:block; margin:0 -32px; padding:0 32px; border-left:3px solid #f59e0b; }
+
+/* ── CALLOUT ── */
+.callout {
+  display:flex; gap:14px; align-items:flex-start;
+  border-radius:12px; padding:16px 20px; margin:16px 0;
+  border: 1px solid;
+}
+.callout p { margin:0; font-size:14px; }
+.callout-icon {
+  width:26px; height:26px; border-radius:50%;
+  flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:700; margin-top:1px;
+}
+.co-blue   { background:var(--accent-l); border-color:#c7d2fe; }
+.co-blue   .callout-icon { background:#c7d2fe; color:var(--accent); }
+.co-green  { background:var(--green-l);  border-color:#a7f3d0; }
+.co-green  .callout-icon { background:#a7f3d0; color:var(--green); }
+.co-red    { background:var(--red-l);    border-color:#fecaca; }
+.co-red    .callout-icon { background:#fecaca; color:var(--red); }
+.co-amber  { background:var(--amber-l);  border-color:#fde68a; }
+.co-amber  .callout-icon { background:#fde68a; color:var(--amber); }
+
+/* ── TABLE ── */
+.tbl-wrap { background:var(--bg); border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:var(--shadow-sm); }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+th {
+  background:var(--bg2); color:var(--muted);
+  font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:1px;
+  padding:12px 18px; text-align:left; border-bottom:1px solid var(--border);
+}
+td { padding:11px 18px; border-bottom:1px solid var(--border); color:var(--text); font-family:var(--mono); font-size:13px; }
+tr:last-child td { border-bottom:none; }
+.td-hi { background:#f5f3ff; }
+.td-green { color:var(--green); font-weight:600; }
+.td-red   { color:var(--red);   font-weight:600; }
+.td-accent{ color:var(--accent);font-weight:700; }
+
+/* ── DEMO ── */
+.demo-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: var(--shadow);
+}
+
+.demo-top {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.demo-top h3 { margin:0; flex:1; font-size:16px; }
+
+.btn {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 9px 20px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border2);
+  cursor: pointer;
+  background: var(--bg);
+  color: var(--text);
+  transition: all 0.15s;
+  box-shadow: var(--shadow-sm);
+}
+.btn:hover { background:var(--bg2); border-color: var(--border2); transform:translateY(-1px); box-shadow:var(--shadow); }
+.btn:active { transform:scale(0.97); }
+.btn:disabled { opacity:0.35; cursor:default; transform:none; box-shadow:none; }
+.btn-primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+.btn-primary:hover { background:#4338ca; border-color:#4338ca; }
+.btn-green { background:var(--green); color:#fff; border-color:var(--green); }
+.btn-green:hover { background:#047857; border-color:#047857; }
+
+.ctrl-row {
+  display:flex; gap:10px; align-items:center; margin-bottom:18px; flex-wrap:wrap;
+}
+#step-info {
+  margin-left:auto;
+  font-family:var(--mono); font-size:12px;
+  color:var(--muted);
+  background:var(--bg3);
+  padding:5px 12px; border-radius:8px;
+  border:1px solid var(--border);
+}
+
+/* call banner */
+#call-banner {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow-sm);
+  min-height: 60px;
+  transition: border-color 0.2s;
+}
+#call-banner.active-base  { border-color:#10b981; background:#f0fdf4; }
+#call-banner.active-back  { border-color:#ef4444; background:#fef2f2; }
+#call-banner.active-place { border-color:#6366f1; background:#eef2ff; }
+.cb-tag { font-family:var(--mono); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+.cb-call { font-family:var(--mono); font-size:13px; font-weight:500; }
+.tag-base  { color:var(--green);  }
+.tag-back  { color:var(--red);    }
+.tag-place { color:var(--accent); }
+.tag-safe  { color:var(--green);  }
+.tag-init  { color:var(--muted);  }
+
+/* BOARD */
+.board-area {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.board-wrap {
+  flex: 0 0 auto;
+}
+canvas#board-cv {
+  display: block;
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  border: 2px solid var(--border);
+}
+.board-side {
+  flex: 1;
+  min-width: 220px;
+}
+
+/* trace */
+#trace-box {
+  background: #0f1117;
+  border: 1px solid #1e2235;
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.85;
+  max-height: 200px;
+  overflow-y: auto;
+  color: #6b7280;
+  scrollbar-width: thin;
+  scrollbar-color: #1e2235 transparent;
+  margin-top: 18px;
+}
+.tl-active  { color: #34d399; font-weight: 700; }
+.tl-back    { color: #f87171; font-weight: 700; }
+.tl-place   { color: #818cf8; }
+.tl-muted   { color: #374151; }
+
+/* solutions panel */
+#solutions-strip {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.sol-mini {
+  cursor: pointer;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  overflow: hidden;
+  transition: border-color 0.15s, transform 0.15s;
+  box-shadow: var(--shadow-sm);
+}
+.sol-mini:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:var(--shadow); }
+.sol-mini.active { border-color:var(--accent); box-shadow:0 0 0 3px rgba(79,70,229,0.2); }
+.sol-mini canvas { display:block; }
+
+/* formula */
+.formula-box {
+  background: linear-gradient(135deg, var(--accent-l), var(--accent2-l));
+  border: 1.5px solid #c7d2fe;
+  border-radius: 16px;
+  padding: 28px;
+  text-align: center;
+  margin: 20px 0;
+  box-shadow: var(--shadow-sm);
+}
+.formula { font-family:var(--mono); font-size:24px; color:var(--accent); margin-bottom:8px; font-weight:700; }
+.formula-sub { font-size:14px; color:var(--muted); }
+
+/* backtrack visual */
+.bt-visual {
+  display: flex;
+  gap: 0;
+  margin: 20px 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.bt-step {
+  flex: 1;
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  border-right: 1px solid var(--border);
+  background: var(--bg2);
+}
+.bt-step:last-child { border-right: none; }
+.bt-step.try   { background: #eff6ff; color: #1d4ed8; }
+.bt-step.check { background: #fff7ed; color: #c2410c; }
+.bt-step.place { background: #f0fdf4; color: #15803d; }
+.bt-step.back  { background: #fef2f2; color: #b91c1c; }
+.bt-step .bt-icon { font-size: 22px; margin-bottom: 6px; }
+.bt-step .bt-label { font-size: 11px; opacity: 0.7; margin-top: 4px; font-weight: 400; }
+
+/* fade in */
+.fade-in { opacity:0; transform:translateY(16px); transition:opacity 0.5s,transform 0.5s; }
+.fade-in.visible { opacity:1; transform:none; }
+
+/* n selector */
+.n-selector { display:flex; gap:8px; align-items:center; margin-bottom:20px; flex-wrap:wrap; }
+.n-btn {
+  width:40px; height:40px; border-radius:10px;
+  font-family:var(--mono); font-size:15px; font-weight:700;
+  border:1.5px solid var(--border); background:var(--bg);
+  cursor:pointer; transition:all 0.15s; color:var(--text);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:var(--shadow-sm);
+}
+.n-btn:hover { background:var(--bg2); border-color:var(--border2); transform:translateY(-1px); }
+.n-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+footer {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 32px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+footer span { color: var(--accent); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">Algoritmos · Backtracking Recursivo</div>
+  <h1>N-Reinas <span>♛</span></h1>
+  <p>Cómo funciona <code style="font-family:var(--mono);font-size:15px;opacity:0.9">colocarReina()</code> con backtracking, paso a paso.</p>
+  <div class="hero-mono">LogicaNReinas.java · Recursividad + Poda</div>
+  <div class="hero-chips">
+    <div class="hero-chip">Backtracking</div>
+    <div class="hero-chip">Caso base: fila == n</div>
+    <div class="hero-chip">esSeguro() = poda</div>
+    <div class="hero-chip">O(n!) en el peor caso</div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ── 01 EL PROBLEMA ── -->
+<section class="fade-in">
+  <div class="section-num">01 — El problema</div>
+  <h2>¿Qué son las N-Reinas?</h2>
+  <p>Colocar <strong>N reinas</strong> en un tablero de <strong>N×N</strong> de modo que ninguna se amenace entre sí. Una reina amenaza a cualquier pieza en su misma fila, columna o diagonal.</p>
+
+  <div class="card-grid">
+    <div class="card card-accent">
+      <div class="badge badge-indigo">Restricción</div>
+      <h3>Sin ataques cruzados</h3>
+      <p>Ningún par de reinas puede compartir fila, columna ni diagonal. Con N=4 hay exactamente <strong>2 soluciones</strong>. Con N=8 hay <strong>92 soluciones</strong>.</p>
+    </div>
+    <div class="card card-green">
+      <div class="badge badge-green">Estrategia</div>
+      <h3>Una reina por fila</h3>
+      <p>Como no puede haber dos reinas en la misma fila, el algoritmo coloca <strong>exactamente una reina por fila</strong>, recorriendo de fila 0 a fila N-1.</p>
+    </div>
+  </div>
+
+  <div class="bt-visual">
+    <div class="bt-step try">
+      <div class="bt-icon">→</div>
+      Intentar col
+      <div class="bt-label">for (int col=0; col&lt;n; col++)</div>
+    </div>
+    <div class="bt-step check">
+      <div class="bt-icon">?</div>
+      Verificar
+      <div class="bt-label">esSeguro(fila, col)</div>
+    </div>
+    <div class="bt-step place">
+      <div class="bt-icon">♛</div>
+      Colocar
+      <div class="bt-label">tablero[fila] = col</div>
+    </div>
+    <div class="bt-step back">
+      <div class="bt-icon">↩</div>
+      Backtrack
+      <div class="bt-label">siguiente col del for</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 02 EL CÓDIGO ── -->
+<section class="fade-in">
+  <div class="section-num">02 — El código</div>
+  <h2>Tu método <code style="font-size:24px;font-family:var(--mono)">colocarReina()</code></h2>
+
+<pre><span class="lang-tag">Java</span><code><span class="cm">// Punto de entrada — el usuario llama este método</span>
+<span class="kw">public</span> <span class="tp">List</span>&lt;<span class="kw">int</span>[]&gt; <span class="fn">resolverNReinas</span>(<span class="kw">int</span> <span class="var">n</span>) {
+    <span class="tp">List</span>&lt;<span class="kw">int</span>[]&gt; <span class="var">soluciones</span> = <span class="kw">new</span> <span class="tp">ArrayList</span>&lt;&gt;();
+    <span class="kw">int</span>[] <span class="var">tablero</span> = <span class="kw">new int</span>[<span class="var">n</span>]; <span class="cm">// tablero[i] = columna de la reina en fila i</span>
+    <span class="fn">colocarReina</span>(<span class="num">0</span>, <span class="var">tablero</span>, <span class="var">soluciones</span>, <span class="var">n</span>); <span class="cm">// empieza desde fila 0</span>
+    <span class="kw">return</span> <span class="var">soluciones</span>;
+}</code></pre>
+
+<pre><span class="lang-tag">Java — Recursión + Backtracking</span><code><span class="kw">private void</span> <span class="fn">colocarReina</span>(<span class="kw">int</span> <span class="var">fila</span>, <span class="kw">int</span>[] <span class="var">tablero</span>, <span class="tp">List</span>&lt;<span class="kw">int</span>[]&gt; <span class="var">soluciones</span>, <span class="kw">int</span> <span class="var">n</span>) {
+
+<span class="hl-green">    <span class="cm">// ── CASO BASE ────────────────────────────────────────────────────────</span></span>
+<span class="hl-green">    <span class="kw">if</span> (<span class="var">fila</span> == <span class="var">n</span>) {                    <span class="cm">// colocamos todas las reinas</span></span>
+<span class="hl-green">        <span class="var">soluciones</span>.<span class="fn">add</span>(<span class="var">tablero</span>.<span class="fn">clone</span>());  <span class="cm">// guardamos esta solución</span></span>
+<span class="hl-green">        <span class="kw">return</span>;                           <span class="cm">// regresamos (no hay más que hacer)</span></span>
+<span class="hl-green">    }</span>
+
+    <span class="cm">// ── PASO RECURSIVO: probar cada columna en la fila actual ─────────────</span>
+    <span class="kw">for</span> (<span class="kw">int</span> <span class="var">col</span> = <span class="num">0</span>; <span class="var">col</span> &lt; <span class="var">n</span>; <span class="var">col</span>++) {
+
+<span class="hl-line">        <span class="kw">if</span> (<span class="fn">esSeguro</span>(<span class="var">fila</span>, <span class="var">col</span>, <span class="var">tablero</span>)) {  <span class="cm">// ¿podemos poner la reina aquí?</span></span>
+<span class="hl-line">            <span class="var">tablero</span>[<span class="var">fila</span>] = <span class="var">col</span>;               <span class="cm">// COLOCAMOS la reina</span></span>
+<span class="hl-line">            <span class="fn">colocarReina</span>(<span class="var">fila</span> + <span class="num">1</span>, <span class="var">tablero</span>, <span class="var">soluciones</span>, <span class="var">n</span>);  <span class="cm">// ← LLAMADA RECURSIVA</span></span>
+<span class="hl-line">        }  <span class="cm">// si no funcionó, el for prueba la siguiente columna (backtrack implícito)</span></span>
+    }
+    <span class="cm">// Al terminar el for sin éxito → esta función regresa, deshaciendo la decisión</span>
+}</code></pre>
+
+<pre><span class="lang-tag">Java — Función de poda</span><code><span class="kw">private boolean</span> <span class="fn">esSeguro</span>(<span class="kw">int</span> <span class="var">fila</span>, <span class="kw">int</span> <span class="var">col</span>, <span class="kw">int</span>[] <span class="var">tablero</span>) {
+    <span class="kw">for</span> (<span class="kw">int</span> <span class="var">i</span> = <span class="num">0</span>; <span class="var">i</span> &lt; <span class="var">fila</span>; <span class="var">i</span>++) {
+        <span class="kw">int</span> <span class="var">colColocada</span> = <span class="var">tablero</span>[<span class="var">i</span>];
+
+<span class="hl-red">        <span class="kw">if</span> (<span class="var">colColocada</span> == <span class="var">col</span>)  <span class="cm">// misma columna</span></span>
+<span class="hl-red">            <span class="kw">return false</span>;</span>
+
+<span class="hl-amber">        <span class="kw">if</span> (Math.<span class="fn">abs</span>(<span class="var">colColocada</span> <span class="op">-</span> <span class="var">col</span>) == Math.<span class="fn">abs</span>(<span class="var">i</span> <span class="op">-</span> <span class="var">fila</span>)) <span class="cm">// diagonal</span></span>
+<span class="hl-amber">            <span class="kw">return false</span>;</span>
+    }
+    <span class="kw">return true</span>; <span class="cm">// ninguna reina anterior ataca → es segura</span>
+}</code></pre>
+
+  <div class="card-grid">
+    <div class="card card-green">
+      <div class="badge badge-green">Caso base</div>
+      <h3><code style="font-family:var(--mono);font-size:14px">fila == n</code></h3>
+      <p>Cuando la fila es igual a N, todas las N reinas ya están colocadas sin conflicto. Se guarda una copia del tablero y se regresa para seguir buscando más soluciones.</p>
+    </div>
+    <div class="card card-red">
+      <div class="badge badge-red">Backtracking</div>
+      <h3>El <code style="font-family:var(--mono);font-size:14px">for</code> como retroceso</h3>
+      <p>Si <code style="font-family:var(--mono)">colocarReina(fila+1)</code> no encontró solución, el <code style="font-family:var(--mono)">for</code> simplemente prueba la siguiente columna — sobrescribiendo <code style="font-family:var(--mono)">tablero[fila]</code>. El backtrack es implícito.</p>
+    </div>
+  </div>
+
+  <div class="callout co-blue">
+    <div class="callout-icon">!</div>
+    <p><strong>Clave:</strong> No hay un paso explícito de "deshacer" porque <code style="font-family:var(--mono)">tablero[fila] = col</code> simplemente se sobrescribe en la siguiente iteración del <code style="font-family:var(--mono)">for</code>. El backtracking ocurre cuando la llamada recursiva regresa y el bucle avanza a la siguiente columna.</p>
+  </div>
+</section>
+
+<!-- ── 03 ESEGURO ── -->
+<section class="fade-in">
+  <div class="section-num">03 — La poda</div>
+  <h2>Cómo funciona <code style="font-size:24px;font-family:var(--mono)">esSeguro()</code></h2>
+  <p>Esta función revisa todas las reinas ya colocadas (filas 0..fila-1) y verifica si alguna ataca la posición candidata:</p>
+
+  <div class="card-grid">
+    <div class="card card-red">
+      <div class="badge badge-red">Conflicto 1: misma columna</div>
+      <h3><code style="font-family:var(--mono);font-size:13px">colColocada == col</code></h3>
+      <p>Si alguna reina anterior está en la misma columna, hay conflicto vertical directo. Dos reinas en la misma columna siempre se atacan.</p>
+    </div>
+    <div class="card card-amber">
+      <div class="badge badge-amber">Conflicto 2: diagonales</div>
+      <h3><code style="font-family:var(--mono);font-size:13px">|col₁-col₂| == |fila₁-fila₂|</code></h3>
+      <p>Si la diferencia de columnas es igual a la diferencia de filas, las dos reinas están en la misma diagonal (ascendente o descendente). Un solo <code style="font-family:var(--mono)">abs()</code> cubre ambas diagonales.</p>
+    </div>
+  </div>
+
+  <div class="callout co-green">
+    <div class="callout-icon">✓</div>
+    <p><strong>No revisa filas</strong> porque el algoritmo ya garantiza que cada fila tiene exactamente una reina (una reina por llamada recursiva). La verificación de fila sería redundante.</p>
+  </div>
+</section>
+
+<!-- ── 04 DEMO ── -->
+<section class="fade-in" id="demo-sec">
+  <div class="section-num">04 — Demostración</div>
+  <h2>Visualización paso a paso</h2>
+  <p>Selecciona el valor de N y observa cómo el algoritmo coloca y retira reinas hasta encontrar todas las soluciones.</p>
+
+  <div class="demo-wrap">
+    <div class="n-selector">
+      <span style="font-size:14px;font-weight:600;color:var(--muted);margin-right:4px;">N =</span>
+      <button class="n-btn" onclick="setN(4)">4</button>
+      <button class="n-btn" onclick="setN(5)">5</button>
+      <button class="n-btn" onclick="setN(6)">6</button>
+      <button class="n-btn" onclick="setN(7)">7</button>
+      <button class="n-btn" onclick="setN(8)">8</button>
+    </div>
+
+    <div class="ctrl-row">
+      <button class="btn" id="bprev" onclick="step(-1)" disabled>← Anterior</button>
+      <button class="btn btn-primary" id="bnext" onclick="step(1)">Siguiente →</button>
+      <button class="btn" onclick="restart()">Reiniciar</button>
+      <button class="btn btn-green" id="bauto" onclick="toggleAuto()">▶ Reproducir</button>
+      <span id="step-info">Paso 0 / 0</span>
+    </div>
+
+    <div id="call-banner">
+      <div class="cb-tag tag-init">Estado inicial</div>
+      <div class="cb-call" id="cb-call">colocarReina(fila=0, tablero=[], n=4) — empieza en fila 0, col 0</div>
+    </div>
+
+    <div class="board-area">
+      <div class="board-wrap">
+        <canvas id="board-cv" width="360" height="360"></canvas>
+      </div>
+      <div class="board-side">
+        <h3 style="margin-bottom:10px;font-size:15px;">Reinas activas</h3>
+        <div id="queens-list" style="font-family:var(--mono);font-size:13px;color:var(--muted);line-height:2;">Tablero vacío</div>
+        <div style="margin-top:16px;">
+          <h3 style="margin-bottom:10px;font-size:15px;">Soluciones encontradas</h3>
+          <div id="sol-count" style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--accent);margin-bottom:10px;">0</div>
+          <div id="solutions-strip"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="trace-box">Esperando primer movimiento...</div>
+  </div>
+</section>
+
+<!-- ── 05 ÁRBOL DE RECURSIÓN ── -->
+<section class="fade-in">
+  <div class="section-num">05 — Árbol de llamadas</div>
+  <h2>Cómo se expande la recursión (N=4)</h2>
+  <p>Cada nodo es una llamada a <code style="font-family:var(--mono)">colocarReina(fila, col)</code>. Las ramas en <span style="color:var(--red);font-weight:600">rojo</span> son podas de <code style="font-family:var(--mono)">esSeguro()</code>. Las <span style="color:var(--green);font-weight:600">verdes</span> son soluciones.</p>
+
+  <div style="background:#0f1117;border:1px solid #1e2235;border-radius:14px;overflow:hidden;box-shadow:var(--shadow);">
+    <div style="background:#1a1f2e;border-bottom:1px solid #1e2235;padding:12px 20px;font-family:var(--mono);font-size:12px;color:#4a5070;letter-spacing:1px;">ÁRBOL DE LLAMADAS — colocarReina(fila, col) con N=4</div>
+    <div style="padding:20px 24px;font-family:var(--mono);font-size:12.5px;line-height:2.2;overflow-x:auto;">
+      <div style="color:#818cf8;">colocarReina(fila=0)</div>
+      <div style="color:#6b7280;">├── col=0 → <span style="color:#a78bfa;">colocarReina(fila=1)</span></div>
+      <div style="color:#6b7280;">│   ├── col=0 → <span style="color:#ef4444;">✗ esSeguro=false (misma columna)</span></div>
+      <div style="color:#6b7280;">│   ├── col=1 → <span style="color:#ef4444;">✗ esSeguro=false (diagonal)</span></div>
+      <div style="color:#6b7280;">│   ├── col=2 → <span style="color:#a78bfa;">colocarReina(fila=2)</span></div>
+      <div style="color:#6b7280;">│   │   ├── col=0 → <span style="color:#ef4444;">✗ (diagonal)</span></div>
+      <div style="color:#6b7280;">│   │   ├── col=1 → <span style="color:#ef4444;">✗ (misma col)</span></div>
+      <div style="color:#6b7280;">│   │   ├── col=2 → <span style="color:#ef4444;">✗ (misma col)</span></div>
+      <div style="color:#6b7280;">│   │   └── col=3 → <span style="color:#ef4444;">✗ (diagonal)</span>  <span style="color:#374151;">← backtrack total de fila=2</span></div>
+      <div style="color:#6b7280;">│   └── col=3 → <span style="color:#a78bfa;">colocarReina(fila=2)</span></div>
+      <div style="color:#6b7280;">│       ├── col=0 → <span style="color:#ef4444;">✗ (diagonal)</span></div>
+      <div style="color:#6b7280;">│       ├── col=1 → <span style="color:#a78bfa;">colocarReina(fila=3)</span></div>
+      <div style="color:#6b7280;">│       │   ├── col=0 → <span style="color:#ef4444;">✗</span></div>
+      <div style="color:#6b7280;">│       │   ├── col=1 → <span style="color:#ef4444;">✗</span></div>
+      <div style="color:#6b7280;">│       │   ├── col=2 → <span style="color:#ef4444;">✗</span></div>
+      <div style="color:#6b7280;">│       │   └── col=3 → <span style="color:#ef4444;">✗</span></div>
+      <div style="color:#6b7280;">│       ├── col=2 → <span style="color:#ef4444;">✗ (diagonal)</span></div>
+      <div style="color:#6b7280;">│       └── col=3 → <span style="color:#ef4444;">✗ (misma col)</span></div>
+      <div style="color:#6b7280;">├── col=1 → <span style="color:#a78bfa;">colocarReina(fila=1)</span></div>
+      <div style="color:#6b7280;">│   ├── ... varios intentos fallidos ...</div>
+      <div style="color:#6b7280;">│   └── col=3 → <span style="color:#a78bfa;">colocarReina(fila=2, col=0)</span> → <span style="color:#a78bfa;">colocarReina(fila=3, col=2)</span></div>
+      <div style="color:#6b7280;">│           └── fila==n → <span style="color:#34d399;font-weight:700;">✓ SOLUCIÓN 1: [1,3,0,2]</span></div>
+      <div style="color:#6b7280;">├── col=2 → ... → <span style="color:#34d399;font-weight:700;">✓ SOLUCIÓN 2: [2,0,3,1]</span></div>
+      <div style="color:#6b7280;">└── col=3 → ... todos fallan → backtrack</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 06 COMPLEJIDAD ── -->
+<section class="fade-in">
+  <div class="section-num">06 — Complejidad</div>
+  <h2>¿Cuánto trabaja el algoritmo?</h2>
+
+  <div class="formula-box">
+    <div class="formula">T(n) ≈ O(n!)  →  con poda: mucho menos</div>
+    <div class="formula-sub">Sin <code style="font-family:var(--mono)">esSeguro()</code> sería n^n posibilidades · la poda elimina ramas enteras</div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>N</th><th>Peor caso (n!)</th><th>Nodos explorados (real)</th><th>Soluciones</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>4</td><td>24</td><td class="td-accent">~16</td><td class="td-green">2</td></tr>
+        <tr class="td-hi"><td>5</td><td>120</td><td class="td-accent">~53</td><td class="td-green">10</td></tr>
+        <tr><td>6</td><td>720</td><td class="td-accent">~152</td><td class="td-green">4</td></tr>
+        <tr><td>8</td><td>40 320</td><td class="td-accent">~876</td><td class="td-green">92</td></tr>
+        <tr><td>12</td><td>479 001 600</td><td class="td-accent">~428 094</td><td class="td-green">14 200</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card-grid" style="margin-top:16px;">
+    <div class="card card-accent">
+      <div class="badge badge-indigo">Tiempo: O(n!)</div>
+      <h3>Poda salva el día</h3>
+      <p>Sin <code style="font-family:var(--mono)">esSeguro()</code> exploraríamos nⁿ nodos. La poda descarta ramas completas antes de explorarlas, reduciendo el trabajo de forma dramática.</p>
+    </div>
+    <div class="card card-green">
+      <div class="badge badge-green">Espacio: O(n)</div>
+      <h3>Tablero + pila de llamadas</h3>
+      <p>Solo se guarda un array de tamaño N para el tablero. La pila recursiva tiene profundidad máxima N (una llamada por fila). Muy eficiente en memoria.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 07 RESUMEN ── -->
+<section class="fade-in">
+  <div class="section-num">07 — Resumen</div>
+  <h2>Los 4 elementos del backtracking</h2>
+
+  <div class="card card-green" style="margin-bottom:12px;">
+    <div class="badge badge-green">1 — Caso base</div>
+    <p style="margin:0"><code style="font-family:var(--mono)">if (fila == n)</code> — Cuando hemos colocado una reina en cada fila sin conflictos, tenemos una solución completa. Se guarda y se regresa para seguir buscando más.</p>
+  </div>
+  <div class="card card-accent" style="margin-bottom:12px;">
+    <div class="badge badge-indigo">2 — Elección</div>
+    <p style="margin:0">El <code style="font-family:var(--mono)">for (col=0; col&lt;n; col++)</code> representa todas las elecciones posibles para la fila actual. El algoritmo las prueba en orden.</p>
+  </div>
+  <div class="card card-red" style="margin-bottom:12px;">
+    <div class="badge badge-red">3 — Poda</div>
+    <p style="margin:0"><code style="font-family:var(--mono)">if (esSeguro(fila, col, tablero))</code> — Antes de explorar una rama, verificamos si tiene sentido. Si no es seguro, saltamos esa columna sin llamar a la recursión.</p>
+  </div>
+  <div class="card card-amber">
+    <div class="badge badge-amber">4 — Backtrack implícito</div>
+    <p style="margin:0">No hay un "deshacer" explícito. Cuando <code style="font-family:var(--mono)">colocarReina(fila+1)</code> regresa, el <code style="font-family:var(--mono)">for</code> avanza a la siguiente columna y <strong>sobrescribe</strong> <code style="font-family:var(--mono)">tablero[fila]</code> — ese es el retroceso.</p>
+  </div>
+</section>
+
+</div><!-- /container -->
+
+<footer>
+  N-Reinas · Backtracking Recursivo con Java &nbsp;·&nbsp; <span>colocarReina(fila+1, tablero, soluciones, n)</span>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   MOTOR: replica exacta de LogicaNReinas.java
+   ═══════════════════════════════════════════════════ */
+
+let N = 4;
+let steps = [];   // cada paso del algoritmo
+let cur   = 0;
+let timer = null;
+let solutions = [];
+
+function esSeguro(fila, col, tablero) {
+  for (let i = 0; i < fila; i++) {
+    const c = tablero[i];
+    if (c === col || Math.abs(c - col) === Math.abs(i - fila)) return false;
+  }
+  return true;
+}
+
+function generateSteps(n) {
+  const stepsArr = [];
+  const sols = [];
+  const tablero = new Array(n).fill(-1);
+
+  function colocarReina(fila) {
+    stepsArr.push({ type:'enter', fila, tablero: tablero.slice(), solCount: sols.length });
+
+    if (fila === n) {
+      const sol = tablero.slice();
+      sols.push(sol);
+      stepsArr.push({ type:'solution', fila, tablero: tablero.slice(), sol: sol.slice(), solCount: sols.length });
+      return;
+    }
+
+    for (let col = 0; col < n; col++) {
+      const safe = esSeguro(fila, col, tablero);
+      stepsArr.push({ type: safe ? 'try_safe' : 'try_unsafe', fila, col, tablero: tablero.slice(), solCount: sols.length });
+      if (safe) {
+        tablero[fila] = col;
+        stepsArr.push({ type:'place', fila, col, tablero: tablero.slice(), solCount: sols.length });
+        colocarReina(fila + 1);
+        stepsArr.push({ type:'back', fila, col, tablero: tablero.slice(), solCount: sols.length });
+      }
+    }
+    tablero[fila] = -1;
+  }
+
+  colocarReina(0);
+  return { stepsArr, sols };
+}
+
+function init(n) {
+  N = n;
+  const { stepsArr, sols } = generateSteps(n);
+  steps = stepsArr;
+  solutions = sols;
+  cur = 0;
+  stopAuto();
+  updateNBtns();
+  renderSolutionStrip();
+  draw(0);
+}
+
+/* ── CANVAS DRAW ── */
+function drawBoard(step) {
+  const cv = document.getElementById('board-cv');
+  const ctx = cv.getContext('2d');
+  const SIZE = 360;
+  const cell = SIZE / N;
+  cv.width = SIZE; cv.height = SIZE;
+  ctx.clearRect(0, 0, SIZE, SIZE);
+
+  const s = steps[step];
+  if (!s) return;
+
+  const tablero = s.tablero;
+  const activeFila = s.fila < N ? s.fila : -1;
+  const activeCol  = (s.type === 'try_safe' || s.type === 'try_unsafe' || s.type === 'place') ? s.col : -1;
+
+  for (let r = 0; r < N; r++) {
+    for (let c = 0; c < N; c++) {
+      const isLight = (r + c) % 2 === 0;
+      let fill = isLight ? '#f0f0f0' : '#2d3748';
+
+      if (r === activeFila) {
+        fill = isLight
+          ? (s.type === 'try_unsafe' ? '#fecaca' : '#dbeafe')
+          : (s.type === 'try_unsafe' ? '#991b1b' : '#1e3a5f');
+      }
+
+      ctx.fillStyle = fill;
+      ctx.fillRect(c * cell, r * cell, cell, cell);
+
+      // grid lines
+      ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(c * cell, r * cell, cell, cell);
+
+      // highlight active cell
+      if (r === activeFila && c === activeCol) {
+        ctx.fillStyle = s.type === 'try_unsafe'
+          ? 'rgba(239,68,68,0.35)'
+          : 'rgba(79,70,229,0.35)';
+        ctx.fillRect(c * cell, r * cell, cell, cell);
+      }
+    }
+  }
+
+  // attacked squares overlay when placing
+  if (s.type === 'place' || s.type === 'solution') {
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        let attacked = false;
+        for (let qi = 0; qi < N; qi++) {
+          const qc = tablero[qi];
+          if (qc < 0) continue;
+          if (qc === c) { attacked = true; break; }
+          if (Math.abs(qc - c) === Math.abs(qi - r)) { attacked = true; break; }
+        }
+        const hasQueen = tablero[r] === c;
+        if (attacked && !hasQueen) {
+          ctx.fillStyle = 'rgba(239,68,68,0.08)';
+          ctx.fillRect(c * cell, r * cell, cell, cell);
+        }
+      }
+    }
+  }
+
+  // draw queens
+  for (let r = 0; r < N; r++) {
+    const c = tablero[r];
+    if (c < 0) continue;
+    const x = c * cell + cell / 2;
+    const y = r * cell + cell / 2;
+    const R = cell * 0.36;
+
+    const isSolution = s.type === 'solution';
+
+    // queen circle
+    ctx.beginPath();
+    ctx.arc(x, y, R, 0, Math.PI * 2);
+    ctx.fillStyle = isSolution ? '#059669' : '#4f46e5';
+    ctx.fill();
+
+    // inner circle
+    ctx.beginPath();
+    ctx.arc(x, y, R * 0.55, 0, Math.PI * 2);
+    ctx.fillStyle = isSolution ? '#34d399' : '#818cf8';
+    ctx.fill();
+
+    // queen symbol
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold ${Math.round(cell * 0.4)}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('♛', x, y + 1);
+  }
+
+  // draw active col X if unsafe
+  if (s.type === 'try_unsafe' && activeCol >= 0 && activeFila >= 0) {
+    const x = activeCol * cell + cell / 2;
+    const y = activeFila * cell + cell / 2;
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 2.5;
+    const off = cell * 0.22;
+    ctx.beginPath(); ctx.moveTo(x - off, y - off); ctx.lineTo(x + off, y + off); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x + off, y - off); ctx.lineTo(x - off, y + off); ctx.stroke();
+  }
+
+  // col + row labels
+  ctx.fillStyle = '#9ca3af';
+  ctx.font = `500 ${Math.max(10, Math.round(cell * 0.22))}px JetBrains Mono, monospace`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let c = 0; c < N; c++) ctx.fillText(c, c * cell + cell / 2, 3);
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let r = 0; r < N; r++) ctx.fillText(r, cell - 4, r * cell + cell / 2);
+}
+
+function draw(s) {
+  if (s < 0 || s >= steps.length) return;
+  cur = s;
+  const st = steps[s];
+  drawBoard(s);
+
+  // queens list
+  const ql = document.getElementById('queens-list');
+  const placed = st.tablero.map((c, r) => c >= 0 ? `Fila ${r} → Col ${c}` : null).filter(Boolean);
+  ql.innerHTML = placed.length
+    ? placed.map(l => `<div style="color:var(--accent);font-weight:500">${l}</div>`).join('')
+    : '<span style="color:var(--muted2)">Tablero vacío</span>';
+
+  // solution count
+  document.getElementById('sol-count').textContent = st.solCount;
+
+  // highlight active solution mini
+  document.querySelectorAll('.sol-mini').forEach((el, i) => {
+    el.classList.toggle('active', i < st.solCount);
+  });
+
+  // banner
+  const banner = document.getElementById('call-banner');
+  banner.className = '';
+  let tagClass = 'tag-init', tagText = 'En progreso', callText = '';
+
+  if (st.type === 'enter' && st.fila === 0 && s === 0) {
+    tagText = 'INICIO'; callText = `colocarReina(fila=0, tablero=[], n=${N})`;
+  } else if (st.type === 'solution') {
+    tagClass = 'tag-safe'; tagText = '✓ SOLUCIÓN ENCONTRADA'; banner.classList.add('active-base');
+    callText = `fila == n=${N} → soluciones.add(tablero.clone())  [solución #${st.solCount}]`;
+  } else if (st.type === 'enter') {
+    tagClass = 'tag-place'; tagText = `LLAMADA RECURSIVA — fila ${st.fila}`; banner.classList.add('active-place');
+    callText = `colocarReina(fila=${st.fila}, tablero=[${st.tablero.slice(0,st.fila).join(',')}], n=${N})`;
+  } else if (st.type === 'try_safe') {
+    tagClass = 'tag-safe'; tagText = `esSeguro → true  (fila=${st.fila}, col=${st.col})`;
+    callText = `tablero[${st.fila}] = ${st.col}  →  llamará colocarReina(fila=${st.fila+1})`;
+  } else if (st.type === 'try_unsafe') {
+    tagClass = 'tag-back'; tagText = `esSeguro → false  (fila=${st.fila}, col=${st.col})`; banner.classList.add('active-back');
+    callText = `Columna ${st.col} descartada (conflicto). Prueba siguiente columna.`;
+  } else if (st.type === 'place') {
+    tagClass = 'tag-place'; tagText = `COLOCAR — tablero[${st.fila}] = ${st.col}`; banner.classList.add('active-place');
+    callText = `colocarReina(fila=${st.fila+1}, ...)  ← llamada recursiva`;
+  } else if (st.type === 'back') {
+    tagClass = 'tag-back'; tagText = `BACKTRACK — vuelve a fila ${st.fila}`; banner.classList.add('active-back');
+    callText = `colocarReina(fila=${st.fila+1}) terminó → siguiente col del for`;
+  }
+
+  document.getElementById('cb-call').innerHTML = callText;
+  document.querySelector('.cb-tag').className = `cb-tag ${tagClass}`;
+  document.querySelector('.cb-tag').textContent = tagText;
+
+  // trace
+  const traceLines = [];
+  const window_start = Math.max(0, s - 6);
+  for (let i = window_start; i <= Math.min(steps.length-1, s+2); i++) {
+    const t = steps[i];
+    let cls = i === s ? 'tl-active' : (i < s ? 'tl-muted' : 'tl-muted');
+    let line = '';
+    if (t.type === 'enter')       line = `  colocarReina(fila=${t.fila})`;
+    else if (t.type === 'solution') line = `  ✓ soluciones.add(tablero.clone())  ← solución #${t.solCount}`;
+    else if (t.type === 'try_safe')   line = `    if (esSeguro(${t.fila}, ${t.col})) → true`;
+    else if (t.type === 'try_unsafe') line = `    if (esSeguro(${t.fila}, ${t.col})) → false ✗`;
+    else if (t.type === 'place')  line = `    tablero[${t.fila}] = ${t.col}  → colocarReina(${t.fila+1})`;
+    else if (t.type === 'back')   line = `    ↩ backtrack a fila=${t.fila} col=${t.col+1}`;
+    traceLines.push(`<span class="${cls}">${line}</span>`);
+  }
+  const tb = document.getElementById('trace-box');
+  tb.innerHTML = traceLines.join('\n');
+  tb.scrollTop = tb.scrollHeight;
+
+  document.getElementById('step-info').textContent = `Paso ${s+1} / ${steps.length}`;
+  document.getElementById('bprev').disabled = s === 0;
+  document.getElementById('bnext').disabled = s === steps.length - 1;
+}
+
+/* solutions mini-boards */
+function renderSolutionStrip() {
+  const strip = document.getElementById('solutions-strip');
+  strip.innerHTML = '';
+  solutions.forEach((sol, idx) => {
+    const div = document.createElement('div');
+    div.className = 'sol-mini';
+    div.title = `Solución ${idx+1}: [${sol.join(',')}]`;
+    const cv = document.createElement('canvas');
+    const sz = Math.min(56, Math.floor(200 / Math.max(solutions.length, 1)));
+    const cell = Math.max(6, Math.floor(sz / N));
+    const total = cell * N;
+    cv.width = total; cv.height = total;
+    const ctx = cv.getContext('2d');
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        ctx.fillStyle = (r+c)%2===0 ? '#f0f0f0' : '#2d3748';
+        ctx.fillRect(c*cell, r*cell, cell, cell);
+        if (sol[r] === c) {
+          ctx.fillStyle = '#059669';
+          ctx.fillRect(c*cell, r*cell, cell, cell);
+          ctx.fillStyle = '#fff';
+          ctx.font = `${Math.max(6, cell-2)}px serif`;
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText('♛', c*cell+cell/2, r*cell+cell/2+1);
+        }
+      }
+    }
+    div.appendChild(cv);
+    strip.appendChild(div);
+  });
+}
+
+function step(d) { draw(Math.max(0, Math.min(steps.length-1, cur+d))); }
+function restart() { stopAuto(); draw(0); }
+function toggleAuto() {
+  if (timer) { stopAuto(); return; }
+  document.getElementById('bauto').textContent = '⏸ Pausar';
+  timer = setInterval(() => {
+    if (cur >= steps.length-1) { stopAuto(); return; }
+    draw(cur+1);
+  }, 420);
+}
+function stopAuto() {
+  clearInterval(timer); timer = null;
+  document.getElementById('bauto').textContent = '▶ Reproducir';
+}
+function setN(n) { init(n); }
+function updateNBtns() {
+  document.querySelectorAll('.n-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.textContent) === N);
+  });
+}
+
+/* scroll fade */
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.07 });
+document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+
+init(4);
+</script>
+</body>
+</html>
